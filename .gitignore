@@ -1,0 +1,14 @@
+.git/*
+.gradle/*
+.settings/*
+backup/*
+bin/*
+build/*
+gradle/*
+.classpath
+.project
+FlatExperience_Client.launch
+FlatExperience_Server.launch
+
+gradle*
+gradlew*
