@@ -19,7 +19,7 @@ public class FlatXPPlugin implements IFMLLoadingPlugin
 	@Override
 	public String getModContainerClass() 
 	{
-		return null;
+		return FlatXPDummyContainer.class.getName();
 	}
 
 	@Override

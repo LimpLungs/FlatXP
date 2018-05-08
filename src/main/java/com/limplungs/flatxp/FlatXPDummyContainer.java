@@ -5,7 +5,6 @@ import java.util.Arrays;
 import net.minecraftforge.fml.common.DummyModContainer;
 import net.minecraftforge.fml.common.LoadController;
 import net.minecraftforge.fml.common.ModMetadata;
-import net.minecraftforge.fml.common.eventhandler.EventBus;
 
 public class FlatXPDummyContainer extends DummyModContainer
 {
@@ -18,13 +17,13 @@ public class FlatXPDummyContainer extends DummyModContainer
         meta.description = "Makes Enchantment levels all equal amounts of XP, and makes the Enchantment Table cost the full levels (1-30).";
         meta.version = "1.12.2-1.0.1";
         meta.authorList = Arrays.asList("LimpLungs");
-        meta.credits = "VikeStep and his github/youtube tutorials on ASM Bytecode Manipulation in Minecraft Modding https://github.com/VikeStep/Coremod-Tutorial";
+        meta.credits = "My brother Gigapickles' idea and request. Also, VikeStep and his github/youtube tutorials on ASM Bytecode Manipulation in Minecraft Modding https://github.com/VikeStep/Coremod-Tutorial";
     }
 
     @Override
-    public boolean registerBus(EventBus bus, LoadController controller)
+    public boolean registerBus(com.google.common.eventbus.EventBus bus, LoadController controller)
     {
-        bus.register(this);
+    	super.registerBus(bus, controller);
         return true;
     }
 }
