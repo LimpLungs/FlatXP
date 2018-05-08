@@ -8,6 +8,7 @@ import javax.naming.Context;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -75,6 +76,31 @@ public class FlatXPClassTransformer implements IClassTransformer
         return className;
     }
 
+	/* replace line #279 enchantItem in nodes: playerIn.onEnchant(itemstack, i);
+	 * 
+	 * replace "i" with getEnchantLevel(this, id)
+	 * 
+	 * "this" is stored in aload_0
+	 * "id" is stored under iload when var == 2
+	 * 
+	 * Original: iload 5
+	 *               "i"
+	 * 
+	 * Target:   aload_0
+	 *              "this"
+	 *           iload 2 
+	 *              "id"
+	 *           invokestatic
+	 *              "public int getEnchantLevel(ContainerEnchantment table, int id)
+	 * 
+	 *  ContainerEnchantment == "afz" in MCP Mapping Viewer
+	 *	MethodInsnNode is MethodInsnNode(INVOKESTATIC, 
+	 *									 Type.getInternalName(FlatXPClassTransformer.class), 
+	 *                                   "getEnchantLevel", 
+	 *                                   "(Lafz;I)I",
+	 *                                   false); 
+	 *				
+	 */
 	private static void transformEnchantItem(ClassNode classNode, boolean isObfuscated) 
 	{
 		//Data found using MCP Mapping Viewer
@@ -121,16 +147,15 @@ public class FlatXPClassTransformer implements IClassTransformer
         }
 	}
 	
-	// NOTE TO SELF:
-	// Use this, replace encahntItem where it says playerIn.onEnchant(itemstack, i);
-	// replace "i" with this, using MethodInsnNode above^^
-	//
+	// Used to get enchant level for enchantItem transform.
 	public int getEnchantLevel(ContainerEnchantment table, int id)
 	{
 		System.out.println(table.enchantLevels[id]);
 		return table.enchantLevels[id];
 	}
 
+	
+	// TODO: Replace the EntityPlayer xpBarCap math with a simple return # where # is a config option.
 	private static void transformXPCap(ClassNode classNode, boolean isObfuscated) 
 	{
 		final String XP_BAR_CAP = isObfuscated ? "dh" : "xpBarCap";
@@ -140,36 +165,11 @@ public class FlatXPClassTransformer implements IClassTransformer
         {
             if (method.name.equals(XP_BAR_CAP) && method.desc.equals(XP_BAR_CAP_DESC))
             {
-            	AbstractInsnNode targetNode = null;
-            	
                 for (AbstractInsnNode instruction : method.instructions.toArray())
                 {
-                    if (instruction.getOpcode() == ALOAD)
-                    {
-                        if (((VarInsnNode) instruction).var == 0 && instruction.getNext().getOpcode() == DUP)
-                        {
-                            targetNode = instruction;
-                            break;
-                        }
-                    }
-                }
-                if (targetNode != null)
-                {
-                	// Remove math from method xpBarCap in EntityPlayer;
-                	for (int i = 0; i < 57; i++)
-                    {
-                    //    targetNode = targetNode.getNext();
-                    //    method.instructions.remove(targetNode.getPrevious());
-                    }
+                	// remove all instructions, add back return #.
                 	
-                	
-                	// Adds back return statement.
-                	//Code:
-                	//0: bipush 100;
-                }
-                else
-                {
-                    System.out.println("Error Transforming FlatXP xpCap!!!");
+                    //method.instructions.remove(instruction);
                 }
             }
         }
