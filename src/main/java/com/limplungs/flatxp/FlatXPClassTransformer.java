@@ -5,14 +5,18 @@ import static org.objectweb.asm.Opcodes.*;
 import java.util.Arrays;
 
 import javax.naming.Context;
+
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
 import org.objectweb.asm.tree.InsnList;
+import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
@@ -125,10 +129,15 @@ public class FlatXPClassTransformer implements IClassTransformer
                             	
                             /* id */
                         	FieldInsnNode curr2 = new FieldInsnNode(GETFIELD, Type.getInternalName(ContainerEnchantment.class), isObfuscated ? "g" : "enchantLevels", "[I");
-                            
+
+                        	LabelNode label = new LabelNode();
+
                         	
                             /* .enchantLevels */
                         	VarInsnNode curr3 = new VarInsnNode(ILOAD, 2);
+                        	
+                        	VarInsnNode curr4 = new VarInsnNode(IALOAD, 0);
+                        	JumpInsnNode curr5 = new JumpInsnNode(IFLE, label);
                            
                             
                             instruction = instruction.getNext();
@@ -136,6 +145,8 @@ public class FlatXPClassTransformer implements IClassTransformer
                             method.instructions.insertBefore(instruction, curr1);
                             method.instructions.insertBefore(instruction, curr2);
                             method.instructions.insertBefore(instruction, curr3);
+                            method.instructions.insertBefore(instruction, curr4);
+                            method.instructions.insertBefore(instruction, curr5);
                                 
                             method.instructions.remove(curr1.getPrevious());
                             System.out.println("done??!!!");
