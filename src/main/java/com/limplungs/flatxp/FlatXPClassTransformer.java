@@ -5,7 +5,6 @@ import static org.objectweb.asm.Opcodes.*;
 import java.util.Arrays;
 
 import javax.naming.Context;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -101,7 +100,7 @@ public class FlatXPClassTransformer implements IClassTransformer
 	 *                                   false); 
 	 *				
 	 */
-	private static void transformEnchantItem(ClassNode classNode, boolean isObfuscated) 
+	private static void transformEnchantItem(ClassNode classNode, boolean isObfuscated) throws NoSuchMethodException, SecurityException 
 	{
 		//Data found using MCP Mapping Viewer
 		final String ENCHANT_ITEM = isObfuscated ? "a" : "enchantItem";
@@ -114,29 +113,31 @@ public class FlatXPClassTransformer implements IClassTransformer
                 for (AbstractInsnNode instruction : method.instructions.toArray())
                 {
                 	// Check and find the location of  "playerIn.onEnchant(itemstack, i);", then set the targetNode to that node.
-                    if (instruction.getOpcode() == ALOAD && instruction.getNext().getOpcode() == ALOAD)
+                    if (instruction.getOpcode() == INVOKEVIRTUAL)
                     {
                     	System.out.println("true test");
-                        if (((VarInsnNode) instruction).var == 1 && ((VarInsnNode) instruction.getNext()).var == 3)
+                        if (((MethodInsnNode) instruction).name.equals("onEnchant") && ((MethodInsnNode) instruction).owner.equals("net/minecraft/entity/player/EntityPlayer"))
                         {
-                        	System.out.println("set to enchant cost node");
-                            	
+                        	System.out.println("set to method onEnchant node");
+                        	
                             /* this */
                             VarInsnNode curr1 = new VarInsnNode(ALOAD, 0);
                             	
                             /* id */
-                            VarInsnNode curr2 = new VarInsnNode(ILOAD, 2);
-                            	
+                        	FieldInsnNode curr2 = new FieldInsnNode(GETFIELD, Type.getInternalName(ContainerEnchantment.class), isObfuscated ? "g" : "enchantLevels", "[I");
+                            
+                        	
                             /* .enchantLevels */
-                            MethodInsnNode curr3 = new MethodInsnNode(INVOKESTATIC, Type.getInternalName(FlatXPClassTransformer.class), "getEnchantLevel", "(Lafz;I)I", false);
+                        	VarInsnNode curr3 = new VarInsnNode(ILOAD, 2);
+                           
                             
                             instruction = instruction.getNext();
 
-                            method.instructions.insert(instruction, curr3);
-                            method.instructions.insert(instruction, curr2);
-                            method.instructions.insert(instruction, curr1);
+                            method.instructions.insertBefore(instruction, curr1);
+                            method.instructions.insertBefore(instruction, curr2);
+                            method.instructions.insertBefore(instruction, curr3);
                                 
-                            method.instructions.remove(curr3.getNext());
+                            method.instructions.remove(curr1.getPrevious());
                             System.out.println("done??!!!");
                             
                             break;
@@ -145,13 +146,6 @@ public class FlatXPClassTransformer implements IClassTransformer
                 }
             }
         }
-	}
-	
-	// Used to get enchant level for enchantItem transform.
-	public int getEnchantLevel(ContainerEnchantment table, int id)
-	{
-		System.out.println(table.enchantLevels[id]);
-		return table.enchantLevels[id];
 	}
 
 	
