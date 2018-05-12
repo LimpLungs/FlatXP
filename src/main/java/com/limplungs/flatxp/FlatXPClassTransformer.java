@@ -2,26 +2,15 @@ package com.limplungs.flatxp;
 
 import static org.objectweb.asm.Opcodes.*;
 
-import java.util.Arrays;
-
-import javax.naming.Context;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldInsnNode;
-import org.objectweb.asm.tree.InsnList;
-import org.objectweb.asm.tree.JumpInsnNode;
-import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
-import net.minecraft.inventory.ContainerEnchantment;
 import net.minecraft.launchwrapper.IClassTransformer;
 
 public class FlatXPClassTransformer implements IClassTransformer 
@@ -54,16 +43,16 @@ public class FlatXPClassTransformer implements IClassTransformer
             ClassReader classReader = new ClassReader(className);
             classReader.accept(classNode, 0);
 
-            if (index == 0)
+            switch(index)
             {
-            	System.out.println("Transforming: " + classes[index]);
-                transformEnchantItem(classNode, isObfuscated);
-            }
-            
-            if (index == 1)
-            {
-            	System.out.println("Transforming: " + classes[index]);
-                transformXPCap(classNode, isObfuscated);
+            	case 0:
+                	System.out.println("Transforming: " + classes[index]);
+                    transformEnchantItem(classNode, isObfuscated);
+                    break;
+            	case 1:
+                	System.out.println("Transforming: " + classes[index]);
+                    transformXPCap(classNode, isObfuscated);
+                    break;
             }
 
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -123,30 +112,23 @@ public class FlatXPClassTransformer implements IClassTransformer
                         if (((MethodInsnNode) instruction).name.equals("onEnchant") && ((MethodInsnNode) instruction).owner.equals("net/minecraft/entity/player/EntityPlayer"))
                         {
                         	System.out.println("set to method onEnchant node");
+
                         	
                             /* this */
                             VarInsnNode curr1 = new VarInsnNode(ALOAD, 0);
                             	
                             /* id */
-                        	FieldInsnNode curr2 = new FieldInsnNode(GETFIELD, Type.getInternalName(ContainerEnchantment.class), isObfuscated ? "g" : "enchantLevels", "[I");
+                        	FieldInsnNode curr2 = new FieldInsnNode(GETFIELD, isObfuscated? "afz" : "Lnet/minecraft/inventory/ContainerEnchantment;", isObfuscated ? "g" : "enchantLevels", "[I");
 
-                        	LabelNode label = new LabelNode();
-
-                        	
                             /* .enchantLevels */
                         	VarInsnNode curr3 = new VarInsnNode(ILOAD, 2);
                         	
                         	VarInsnNode curr4 = new VarInsnNode(IALOAD, 0);
-                        	JumpInsnNode curr5 = new JumpInsnNode(IFLE, label);
-                           
-                            
-                            instruction = instruction.getNext();
 
                             method.instructions.insertBefore(instruction, curr1);
                             method.instructions.insertBefore(instruction, curr2);
                             method.instructions.insertBefore(instruction, curr3);
                             method.instructions.insertBefore(instruction, curr4);
-                            method.instructions.insertBefore(instruction, curr5);
                                 
                             method.instructions.remove(curr1.getPrevious());
                             System.out.println("done??!!!");
@@ -172,6 +154,7 @@ public class FlatXPClassTransformer implements IClassTransformer
             {
                 for (AbstractInsnNode instruction : method.instructions.toArray())
                 {
+                	break;
                 	// remove all instructions, add back return #.
                 	
                     //method.instructions.remove(instruction);
